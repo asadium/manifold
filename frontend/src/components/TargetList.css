@@ -1,0 +1,74 @@
+.target-list {
+  margin-bottom: 2rem;
+}
+
+.target-list h2 {
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.target-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.target-table thead {
+  background-color: #f8f9fa;
+}
+
+.target-table th {
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #555;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.target-table td {
+  padding: 12px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.target-table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.target-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.target-list-loading,
+.target-list-empty {
+  padding: 2rem;
+  text-align: center;
+  color: #666;
+  background: white;
+  border-radius: 8px;
+}
+
+.target-list-error {
+  padding: 1rem;
+  background: #fee;
+  border: 1px solid #fcc;
+  border-radius: 8px;
+  color: #c33;
+}
+
+.target-list-error button {
+  margin-top: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #c33;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.target-list-error button:hover {
+  background: #a22;
+}
+
