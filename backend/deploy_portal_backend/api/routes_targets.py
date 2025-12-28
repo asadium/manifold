@@ -23,7 +23,6 @@ async def create_target(target: TargetCreate):
     new_target = Target(
         id=TARGET_ID_COUNTER,
         name=target.name,
-        type=target.type,
         address=target.address,
         created_at=datetime.now()
     )

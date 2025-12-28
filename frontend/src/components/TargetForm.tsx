@@ -1,5 +1,5 @@
 import { useState, FormEvent } from "react";
-import { createTarget, TargetType } from "../api";
+import { createTarget } from "../api";
 import "./TargetForm.css";
 
 interface TargetFormProps {
@@ -8,7 +8,6 @@ interface TargetFormProps {
 
 export default function TargetForm({ onSuccess }: TargetFormProps) {
   const [name, setName] = useState("");
-  const [type, setType] = useState<TargetType>("kubernetes");
   const [address, setAddress] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -19,11 +18,10 @@ export default function TargetForm({ onSuccess }: TargetFormProps) {
     setError(null);
 
     try {
-      await createTarget({ name, type, address });
+      await createTarget({ name, address });
       // Reset form
       setName("");
       setAddress("");
-      setType("kubernetes");
       if (onSuccess) {
         onSuccess();
       }
@@ -36,7 +34,7 @@ export default function TargetForm({ onSuccess }: TargetFormProps) {
 
   return (
     <div className="target-form">
-      <h2>Create Target</h2>
+      <h2>Create VM Target</h2>
       <form onSubmit={handleSubmit}>
         <div className="form-group">
           <label htmlFor="name">Name</label>
@@ -46,32 +44,19 @@ export default function TargetForm({ onSuccess }: TargetFormProps) {
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
-            placeholder="e.g., Production Cluster"
+            placeholder="e.g., Production Server"
           />
         </div>
 
         <div className="form-group">
-          <label htmlFor="type">Type</label>
-          <select
-            id="type"
-            value={type}
-            onChange={(e) => setType(e.target.value as TargetType)}
-            required
-          >
-            <option value="kubernetes">Kubernetes</option>
-            <option value="vm">VM</option>
-          </select>
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="address">Address</label>
+          <label htmlFor="address">IP Address or Hostname</label>
           <input
             id="address"
             type="text"
             value={address}
             onChange={(e) => setAddress(e.target.value)}
             required
-            placeholder="e.g., cluster.example.com or 192.168.1.100"
+            placeholder="e.g., 192.168.1.100 or server.example.com"
           />
         </div>
 

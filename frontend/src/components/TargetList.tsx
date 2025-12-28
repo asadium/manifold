@@ -53,7 +53,6 @@ export default function TargetList(_props: TargetListProps) {
           <tr>
             <th>ID</th>
             <th>Name</th>
-            <th>Type</th>
             <th>Address</th>
             <th>Created At</th>
           </tr>
@@ -63,7 +62,6 @@ export default function TargetList(_props: TargetListProps) {
             <tr key={target.id}>
               <td>{target.id}</td>
               <td>{target.name}</td>
-              <td>{target.type}</td>
               <td>{target.address}</td>
               <td>{new Date(target.created_at).toLocaleString()}</td>
             </tr>

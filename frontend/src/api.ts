@@ -1,31 +1,33 @@
 const API_BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:8000/api";
 
-export type TargetType = "kubernetes" | "vm";
-
 export interface Target {
   id: number;
   name: string;
-  type: TargetType;
   address: string;
   created_at: string;
 }
 
 export interface TargetCreate {
   name: string;
-  type: TargetType;
   address: string;
 }
 
 export interface DeploymentPreviewResponse {
   ok: boolean;
   target_id: number;
-  manifest_path: string;
+  image?: string;
+  container_name?: string;
+  ports?: string;
+  compose_file_path?: string;
   summary: string;
 }
 
 export interface DeploymentStatus {
   id: number;
   target_id: number;
+  image?: string;
+  container_name?: string;
+  compose_file_path?: string;
   status: "queued" | "running" | "success" | "failed";
   message: string;
   created_at: string;
@@ -53,42 +55,74 @@ export async function createTarget(payload: TargetCreate): Promise<Target> {
   return response.json();
 }
 
+export interface DeploymentRequest {
+  targetId: number;
+  // Single container deployment
+  image?: string;
+  containerName?: string;
+  ports?: string;
+  // Docker Compose deployment
+  composeFilePath?: string;
+}
+
 export async function previewDeployment(
-  targetId: number,
-  manifestPath: string
+  request: DeploymentRequest
 ): Promise<DeploymentPreviewResponse> {
+  const body: any = {
+    target_id: request.targetId,
+  };
+  
+  if (request.composeFilePath) {
+    body.compose_file_path = request.composeFilePath;
+  } else {
+    body.image = request.image;
+    body.container_name = request.containerName;
+    if (request.ports) {
+      body.ports = request.ports;
+    }
+  }
+  
   const response = await fetch(`${API_BASE}/deployments/preview`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      target_id: targetId,
-      manifest_path: manifestPath,
-    }),
+    body: JSON.stringify(body),
   });
   if (!response.ok) {
-    throw new Error(`Failed to preview deployment: ${response.statusText}`);
+    const errorText = await response.text();
+    throw new Error(`Failed to preview deployment: ${errorText}`);
   }
   return response.json();
 }
 
 export async function applyDeployment(
-  targetId: number,
-  manifestPath: string
+  request: DeploymentRequest
 ): Promise<DeploymentStatus> {
+  const body: any = {
+    target_id: request.targetId,
+  };
+  
+  if (request.composeFilePath) {
+    body.compose_file_path = request.composeFilePath;
+  } else {
+    body.image = request.image;
+    body.container_name = request.containerName;
+    if (request.ports) {
+      body.ports = request.ports;
+    }
+  }
+  
   const response = await fetch(`${API_BASE}/deployments/apply`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      target_id: targetId,
-      manifest_path: manifestPath,
-    }),
+    body: JSON.stringify(body),
   });
   if (!response.ok) {
-    throw new Error(`Failed to apply deployment: ${response.statusText}`);
+    const errorText = await response.text();
+    throw new Error(`Failed to apply deployment: ${errorText}`);
   }
   return response.json();
 }

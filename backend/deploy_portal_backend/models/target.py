@@ -1,17 +1,10 @@
 from datetime import datetime
-from enum import Enum
-from pydantic import BaseModel, Field
-
-
-class TargetType(str, Enum):
-    KUBERNETES = "kubernetes"
-    VM = "vm"
+from pydantic import BaseModel
 
 
 class TargetBase(BaseModel):
     name: str
-    type: TargetType
-    address: str
+    address: str  # VM IP address or hostname
 
 
 class TargetCreate(TargetBase):

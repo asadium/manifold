@@ -17,16 +17,14 @@ def test_create_target():
     response = client.post(
         "/api/targets",
         json={
-            "name": "Test Cluster",
-            "type": "kubernetes",
-            "address": "cluster.example.com"
+            "name": "Test VM",
+            "address": "192.168.1.100"
         }
     )
     assert response.status_code == 201
     data = response.json()
-    assert data["name"] == "Test Cluster"
-    assert data["type"] == "kubernetes"
-    assert data["address"] == "cluster.example.com"
+    assert data["name"] == "Test VM"
+    assert data["address"] == "192.168.1.100"
     assert "id" in data
     assert "created_at" in data
 
@@ -38,7 +36,6 @@ def test_get_target():
         "/api/targets",
         json={
             "name": "Test Target",
-            "type": "vm",
             "address": "192.168.1.100"
         }
     )
