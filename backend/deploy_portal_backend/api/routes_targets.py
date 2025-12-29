@@ -24,6 +24,8 @@ async def create_target(target: TargetCreate):
         id=TARGET_ID_COUNTER,
         name=target.name,
         address=target.address,
+        ssh_key_path=target.ssh_key_path,
+        ssh_user=target.ssh_user,
         created_at=datetime.now()
     )
     

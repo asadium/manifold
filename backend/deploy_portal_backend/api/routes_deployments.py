@@ -1,5 +1,5 @@
 from datetime import datetime
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, BackgroundTasks
 from deploy_portal_backend.models.deployment import (
     DeploymentPreviewRequest,
     DeploymentPreviewResponse,
@@ -7,6 +7,7 @@ from deploy_portal_backend.models.deployment import (
     DeploymentStatus,
 )
 from deploy_portal_backend.api.routes_targets import get_target_by_id
+from deploy_portal_backend.services.deployment import DeploymentService
 
 router = APIRouter()
 
@@ -52,48 +53,71 @@ async def preview_deployment(request: DeploymentPreviewRequest):
         )
 
 
+def update_deployment_status(deployment_id: int, status: str, message: str):
+    """Update deployment status in the list."""
+    global DEPLOYMENTS
+    for deployment in DEPLOYMENTS:
+        if deployment.id == deployment_id:
+            # Create new deployment object with updated status
+            updated_deployment = DeploymentStatus(
+                id=deployment.id,
+                target_id=deployment.target_id,
+                image=deployment.image,
+                container_name=deployment.container_name,
+                compose_file_path=deployment.compose_file_path,
+                status=status,
+                message=message,
+                created_at=deployment.created_at
+            )
+            # Replace in list
+            index = DEPLOYMENTS.index(deployment)
+            DEPLOYMENTS[index] = updated_deployment
+            break
+
+
 @router.post("/deployments/apply", response_model=DeploymentStatus, status_code=201)
-async def apply_deployment(request: DeploymentApplyRequest):
-    """Apply a Docker deployment (stub)."""
+async def apply_deployment(request: DeploymentApplyRequest, background_tasks: BackgroundTasks):
+    """Apply a Docker deployment."""
     global DEPLOYMENT_ID_COUNTER
     
     target = get_target_by_id(request.target_id)
     if target is None:
         raise HTTPException(status_code=404, detail="Target not found")
     
+    # Create deployment record with "queued" status
     if request.compose_file_path:
-        # Docker Compose deployment
-        message = (
-            f"Docker Compose deployment queued: '{request.compose_file_path}' "
-            f"to {target.address}"
-        )
         deployment = DeploymentStatus(
             id=DEPLOYMENT_ID_COUNTER,
             target_id=request.target_id,
             compose_file_path=request.compose_file_path,
             status="queued",
-            message=message,
+            message=f"Deployment queued to {target.address}",
             created_at=datetime.now()
         )
     else:
-        # Single container deployment
-        port_info = f" with ports {request.ports}" if request.ports else ""
-        message = (
-            f"Docker deployment queued: {request.container_name} "
-            f"({request.image}){port_info} to {target.address}"
-        )
         deployment = DeploymentStatus(
             id=DEPLOYMENT_ID_COUNTER,
             target_id=request.target_id,
             image=request.image,
             container_name=request.container_name,
             status="queued",
-            message=message,
+            message=f"Deployment queued to {target.address}",
             created_at=datetime.now()
         )
     
     DEPLOYMENT_ID_COUNTER += 1
     DEPLOYMENTS.append(deployment)
+    
+    # Execute deployment in background
+    def execute_deployment():
+        try:
+            update_deployment_status(deployment.id, "running", "Deployment in progress...")
+            result = DeploymentService.deploy(request, target)
+            update_deployment_status(deployment.id, "success", result)
+        except Exception as e:
+            update_deployment_status(deployment.id, "failed", f"Deployment failed: {str(e)}")
+    
+    background_tasks.add_task(execute_deployment)
     
     return deployment
 

@@ -4,12 +4,16 @@ export interface Target {
   id: number;
   name: string;
   address: string;
+  ssh_key_path: string;
+  ssh_user: string;
   created_at: string;
 }
 
 export interface TargetCreate {
   name: string;
   address: string;
+  ssh_key_path: string;
+  ssh_user?: string;
 }
 
 export interface DeploymentPreviewResponse {

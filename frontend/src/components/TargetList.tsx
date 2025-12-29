@@ -54,6 +54,7 @@ export default function TargetList(_props: TargetListProps) {
             <th>ID</th>
             <th>Name</th>
             <th>Address</th>
+            <th>SSH User</th>
             <th>Created At</th>
           </tr>
         </thead>
@@ -63,6 +64,7 @@ export default function TargetList(_props: TargetListProps) {
               <td>{target.id}</td>
               <td>{target.name}</td>
               <td>{target.address}</td>
+              <td>{target.ssh_user}</td>
               <td>{new Date(target.created_at).toLocaleString()}</td>
             </tr>
           ))}
