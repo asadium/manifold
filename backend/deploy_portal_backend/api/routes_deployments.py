@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 from fastapi import APIRouter, HTTPException, BackgroundTasks
 from deploy_portal_backend.models.deployment import (
@@ -8,6 +9,8 @@ from deploy_portal_backend.models.deployment import (
 )
 from deploy_portal_backend.api.routes_targets import get_target_by_id
 from deploy_portal_backend.services.deployment import DeploymentService
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -110,14 +113,20 @@ async def apply_deployment(request: DeploymentApplyRequest, background_tasks: Ba
     
     # Execute deployment in background
     def execute_deployment():
+        logger.info(f"Starting background deployment {deployment.id} for target {target.name} ({target.address})")
         try:
             update_deployment_status(deployment.id, "running", "Deployment in progress...")
+            logger.info(f"Deployment {deployment.id}: Executing deployment commands...")
             result = DeploymentService.deploy(request, target)
+            logger.info(f"Deployment {deployment.id}: Success - {result}")
             update_deployment_status(deployment.id, "success", result)
         except Exception as e:
-            update_deployment_status(deployment.id, "failed", f"Deployment failed: {str(e)}")
+            error_msg = f"Deployment failed: {str(e)}"
+            logger.error(f"Deployment {deployment.id}: Failed - {error_msg}", exc_info=True)
+            update_deployment_status(deployment.id, "failed", error_msg)
     
     background_tasks.add_task(execute_deployment)
+    logger.info(f"Deployment {deployment.id} queued for background execution")
     
     return deployment
 

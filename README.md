@@ -19,8 +19,6 @@ A full-stack deployment portal application for deploying Docker containers on VM
 - Python 3.12+ (for backend development)
 - Node.js 22+ (for frontend development)
 
-**Note**: Make sure Docker Desktop (or Docker daemon) is running before building.
-
 ### Running with Docker Compose
 
 1. Build and start all services:
@@ -33,8 +31,6 @@ A full-stack deployment portal application for deploying Docker containers on VM
    ```bash
    docker compose up --build
    ```
-
-   **Note**: If you see "Cannot connect to the Docker daemon", start Docker Desktop first.
 
 2. Access the application:
    - Frontend: http://localhost:3000

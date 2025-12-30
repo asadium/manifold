@@ -10,6 +10,7 @@ services:
       - PROJECT_NAME=Deploy Portal
     volumes:
       - ./backend/deploy_portal_backend:/app/deploy_portal_backend
+      - ~/.ssh:/root/.ssh:ro  # Mount SSH keys from host (read-only)
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/"]
       interval: 30s
