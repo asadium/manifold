@@ -124,3 +124,27 @@ async def update_target_env(target_id: int, env_vars: dict):
     result = DeploymentService.update_target_env(target, env_vars.get("env", {}))
     return {"message": result}
 
+
+@router.post("/targets/{target_id}/containers/{container_name}/stop")
+async def stop_container(target_id: int, container_name: str):
+    """Stop a container on a target."""
+    target = get_target_by_id(target_id)
+    if target is None:
+        raise HTTPException(status_code=404, detail="Target not found")
+    
+    from deploy_portal_backend.services.deployment import DeploymentService
+    result = DeploymentService.stop_container(target, container_name)
+    return {"message": result}
+
+
+@router.delete("/targets/{target_id}/containers/{container_name}")
+async def delete_container(target_id: int, container_name: str):
+    """Delete a container on a target."""
+    target = get_target_by_id(target_id)
+    if target is None:
+        raise HTTPException(status_code=404, detail="Target not found")
+    
+    from deploy_portal_backend.services.deployment import DeploymentService
+    result = DeploymentService.delete_container(target, container_name)
+    return {"message": result}
+

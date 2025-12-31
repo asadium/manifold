@@ -1,0 +1,155 @@
+.env-loading {
+  padding: 1rem;
+  text-align: center;
+  color: #666;
+  font-size: 0.875rem;
+}
+
+.env-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.env-var-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.env-key-input,
+.env-value-input {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.875rem;
+}
+
+.env-key-input {
+  flex: 0 0 200px;
+}
+
+.remove-env-var-button {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background-color: #dc3545;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1.25rem;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.remove-env-var-button:hover {
+  background-color: #c82333;
+}
+
+.add-env-var-button {
+  padding: 0.5rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: white;
+  color: #333;
+  cursor: pointer;
+  font-size: 0.875rem;
+  align-self: flex-start;
+  margin-top: 0.5rem;
+}
+
+.add-env-var-button:hover {
+  background-color: #f8f9fa;
+}
+
+.env-editor-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.save-env-button,
+.cancel-env-button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.save-env-button {
+  background: #007bff;
+  color: white;
+}
+
+.save-env-button:hover:not(:disabled) {
+  background: #0056b3;
+}
+
+.save-env-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.cancel-env-button {
+  background: #f8f9fa;
+  color: #333;
+  border: 1px solid #ddd;
+}
+
+.cancel-env-button:hover:not(:disabled) {
+  background: #e9ecef;
+}
+
+.env-display {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.env-var-item {
+  display: flex;
+  gap: 1rem;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+}
+
+.env-var-key {
+  font-weight: 600;
+  color: #333;
+  min-width: 120px;
+}
+
+.env-var-value {
+  color: #666;
+  flex: 1;
+  word-break: break-word;
+}
+
+.env-empty {
+  padding: 1rem;
+  text-align: center;
+  color: #999;
+  font-style: italic;
+}
+
+.edit-env-button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  background: #007bff;
+  color: white;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background-color 0.2s;
+  align-self: flex-start;
+  margin-top: 0.5rem;
+}
+
+.edit-env-button:hover {
+  background: #0056b3;
+}
+

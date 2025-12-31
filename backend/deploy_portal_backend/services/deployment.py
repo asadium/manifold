@@ -746,4 +746,62 @@ class DeploymentService:
             
         finally:
             ssh.close()
+            logger.info(f"Closed SSH connection to {target.address}")
+
+    @staticmethod
+    def stop_container(target: Target, container_name: str) -> str:
+        """Stop a Docker container on remote VM."""
+        logger.info(f"Stopping container '{container_name}' on {target.address}")
+        ssh = DeploymentService._get_ssh_client(target)
+        try:
+            sudo_prefix = DeploymentService._get_sudo_prefix(ssh)
+            test_docker_cmd = "docker ps >/dev/null 2>&1 && echo 'no_sudo' || echo 'needs_sudo'"
+            exit_status, docker_check, _ = DeploymentService._execute_command(
+                ssh, test_docker_cmd, "Check if docker needs sudo"
+            )
+            docker_sudo = "" if "no_sudo" in docker_check.lower() else sudo_prefix
+
+            stop_cmd = f"{docker_sudo}docker stop {container_name}"
+            exit_status, stdout_text, stderr_text = DeploymentService._execute_command(
+                ssh, stop_cmd, f"Stop container '{container_name}'"
+            )
+
+            if exit_status != 0:
+                raise Exception(f"Failed to stop container: {stderr_text}")
+            
+            return f"Container {container_name} stopped successfully"
+        finally:
+            ssh.close()
+            logger.info(f"Closed SSH connection to {target.address}")
+
+    @staticmethod
+    def delete_container(target: Target, container_name: str) -> str:
+        """Delete a Docker container on remote VM (stops it first if running)."""
+        logger.info(f"Deleting container '{container_name}' on {target.address}")
+        ssh = DeploymentService._get_ssh_client(target)
+        try:
+            sudo_prefix = DeploymentService._get_sudo_prefix(ssh)
+            test_docker_cmd = "docker ps >/dev/null 2>&1 && echo 'no_sudo' || echo 'needs_sudo'"
+            exit_status, docker_check, _ = DeploymentService._execute_command(
+                ssh, test_docker_cmd, "Check if docker needs sudo"
+            )
+            docker_sudo = "" if "no_sudo" in docker_check.lower() else sudo_prefix
+
+            # Stop container first if it's running
+            stop_cmd = f"{docker_sudo}docker stop {container_name} 2>/dev/null || true"
+            DeploymentService._execute_command(ssh, stop_cmd, f"Stop container '{container_name}' before deletion")
+
+            # Remove container
+            remove_cmd = f"{docker_sudo}docker rm {container_name}"
+            exit_status, stdout_text, stderr_text = DeploymentService._execute_command(
+                ssh, remove_cmd, f"Delete container '{container_name}'"
+            )
+
+            if exit_status != 0:
+                raise Exception(f"Failed to delete container: {stderr_text}")
+            
+            return f"Container '{container_name}' deleted successfully."
+        finally:
+            ssh.close()
+            logger.info(f"Closed SSH connection to {target.address}")
 

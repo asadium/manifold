@@ -10,7 +10,7 @@ import "./dark-mode.css";
 
 function App() {
   const [targets, setTargets] = useState<Target[]>([]);
-  const [refreshKey, setRefreshKey] = useState(0);
+  const [targetListRefreshTrigger, setTargetListRefreshTrigger] = useState(0);
   const [showTargetModal, setShowTargetModal] = useState(false);
   const [showDeploymentModal, setShowDeploymentModal] = useState(false);
   const [deployments, setDeployments] = useState<DeploymentStatus[]>([]);
@@ -22,7 +22,7 @@ function App() {
     try {
       const data = await getTargets();
       setTargets(data);
-      setRefreshKey((k) => k + 1);
+      setTargetListRefreshTrigger(prev => prev + 1);
     } catch (err) {
       console.error("Failed to refresh targets:", err);
     }
@@ -113,7 +113,7 @@ function App() {
       </header>
       <main className="app-main">
         <div className="app-column">
-          <TargetList key={refreshKey} />
+          <TargetList refreshTrigger={targetListRefreshTrigger} />
         </div>
         <div className="app-column">
           <DeploymentPanel targets={targets} deployments={deployments} />

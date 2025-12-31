@@ -225,3 +225,27 @@ export async function updateTargetEnv(targetId: number, env: Record<string, stri
   return data.message;
 }
 
+export async function stopContainer(targetId: number, containerName: string): Promise<string> {
+  const response = await fetch(`${API_BASE}/targets/${targetId}/containers/${encodeURIComponent(containerName)}/stop`, {
+    method: "POST",
+  });
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to stop container: ${errorText}`);
+  }
+  const data = await response.json();
+  return data.message;
+}
+
+export async function deleteContainer(targetId: number, containerName: string): Promise<string> {
+  const response = await fetch(`${API_BASE}/targets/${targetId}/containers/${encodeURIComponent(containerName)}`, {
+    method: "DELETE",
+  });
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to delete container: ${errorText}`);
+  }
+  const data = await response.json();
+  return data.message;
+}
+
