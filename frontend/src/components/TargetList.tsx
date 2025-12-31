@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { getTargets, Target, getTargetContainers, getContainerLogs, getContainerEnv, updateContainerEnv, getTargetEnv, updateTargetEnv, deleteContainer, Container } from "../api";
 import Modal from "./Modal";
 import EnvEditor from "./EnvEditor";
+import ChevronIcon from "./ChevronIcon";
 import "./TargetList.css";
 
 type ContainerFilter = "running" | "exited" | "stopped";
@@ -363,7 +364,7 @@ export default function TargetList({ refreshTrigger }: TargetListProps = {}) {
                               }}
                               onMouseDown={(e) => e.stopPropagation()}
                             >
-                              Filter: {filterMenus.has(target.id) ? '▼' : '▶'}
+                              Filter: <ChevronIcon isOpen={filterMenus.has(target.id)} />
                             </button>
                             {filterMenus.has(target.id) && (
                               <div className="target-action-menu-checkboxes">
@@ -410,7 +411,9 @@ export default function TargetList({ refreshTrigger }: TargetListProps = {}) {
                         </div>
                       )}
                     </div>
-                    <span className="expand-icon" onClick={() => toggleTarget(target.id)}>{isExpanded ? '▼' : '▶'}</span>
+                    <span className="expand-icon" onClick={() => toggleTarget(target.id)}>
+                      <ChevronIcon isOpen={isExpanded} />
+                    </span>
                   </div>
                 </div>
 
@@ -459,13 +462,13 @@ export default function TargetList({ refreshTrigger }: TargetListProps = {}) {
                                     onClick={(e) => { e.stopPropagation(); toggleContainerLogs(target.id, container.name); }}
                                     disabled={loadingLogs.has(logKey)}
                                     onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                                  >Logs {isLogsOpen ? '▼' : '▶'}</button>
+                                  >Logs <ChevronIcon isOpen={isLogsOpen} /></button>
                                   <button
                                     className="container-dropdown-button"
                                     onClick={(e) => { e.stopPropagation(); toggleContainerEnv(target.id, container.name); }}
                                     disabled={loadingEnv.has(envKey)}
                                     onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                                  >Env {isEnvOpen ? '▼' : '▶'}</button>
+                                  >Env <ChevronIcon isOpen={isEnvOpen} /></button>
                                   <button
                                     className="delete-container-icon"
                                     onClick={(e) => { e.stopPropagation(); setDeleteConfirmation({ targetId: target.id, containerName: container.name }); }}

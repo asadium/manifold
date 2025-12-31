@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Target, DeploymentStatus, getDeploymentLogs, DeploymentLog } from "../api";
+import ChevronIcon from "./ChevronIcon";
 import "./DeploymentPanel.css";
 
 interface DeploymentPanelProps {
@@ -164,7 +165,9 @@ export default function DeploymentPanel({ targets, deployments }: DeploymentPane
                   </span>
                 </div>
                 <div className="deployment-card-actions">
-                  <span className="expand-icon">{isExpanded ? '▼' : '▶'}</span>
+                  <span className="expand-icon">
+                    <ChevronIcon isOpen={isExpanded} />
+                  </span>
                 </div>
               </div>
 

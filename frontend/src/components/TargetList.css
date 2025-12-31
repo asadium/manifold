@@ -199,8 +199,9 @@
 
 .expand-icon {
   color: #666;
-  font-size: 0.75rem;
-  transition: transform 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
 }
 

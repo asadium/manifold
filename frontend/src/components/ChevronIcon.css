@@ -1,0 +1,24 @@
+.chevron-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+  color: inherit;
+  flex-shrink: 0;
+  margin-left: 0.25rem;
+}
+
+.chevron-icon svg {
+  width: 10px;
+  height: 6px;
+  display: block;
+}
+
+.chevron-closed {
+  transform: rotate(-90deg);
+}
+
+.chevron-open {
+  transform: rotate(0deg);
+}
+
