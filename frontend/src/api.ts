@@ -131,3 +131,97 @@ export async function applyDeployment(
   return response.json();
 }
 
+export interface DeploymentLog {
+  timestamp: string;
+  level: string;
+  message: string;
+}
+
+export async function getDeploymentLogs(deploymentId: number): Promise<DeploymentLog[]> {
+  const response = await fetch(`${API_BASE}/deployments/${deploymentId}/logs`);
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to get deployment logs: ${errorText}`);
+  }
+  return response.json();
+}
+
+export interface Container {
+  id: string;
+  name: string;
+  image: string;
+  status: string;
+  ports: string;
+}
+
+export async function getTargetContainers(targetId: number): Promise<Container[]> {
+  const response = await fetch(`${API_BASE}/targets/${targetId}/containers`);
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to get containers: ${errorText}`);
+  }
+  return response.json();
+}
+
+export async function getContainerLogs(targetId: number, containerName: string, lines: number = 100): Promise<string> {
+  const response = await fetch(`${API_BASE}/targets/${targetId}/containers/${encodeURIComponent(containerName)}/logs?lines=${lines}`);
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to get container logs: ${errorText}`);
+  }
+  const data = await response.json();
+  return data.logs;
+}
+
+export async function getContainerEnv(targetId: number, containerName: string): Promise<Record<string, string>> {
+  const response = await fetch(`${API_BASE}/targets/${targetId}/containers/${encodeURIComponent(containerName)}/env`);
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to get container env: ${errorText}`);
+  }
+  const data = await response.json();
+  return data.env;
+}
+
+export async function updateContainerEnv(targetId: number, containerName: string, env: Record<string, string>): Promise<string> {
+  const response = await fetch(`${API_BASE}/targets/${targetId}/containers/${encodeURIComponent(containerName)}/env`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ env }),
+  });
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to update container env: ${errorText}`);
+  }
+  const data = await response.json();
+  return data.message;
+}
+
+export async function getTargetEnv(targetId: number): Promise<Record<string, string>> {
+  const response = await fetch(`${API_BASE}/targets/${targetId}/env`);
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to get target env: ${errorText}`);
+  }
+  const data = await response.json();
+  return data.env;
+}
+
+export async function updateTargetEnv(targetId: number, env: Record<string, string>): Promise<string> {
+  const response = await fetch(`${API_BASE}/targets/${targetId}/env`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ env }),
+  });
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to update target env: ${errorText}`);
+  }
+  const data = await response.json();
+  return data.message;
+}
+

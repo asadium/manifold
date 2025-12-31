@@ -7,16 +7,24 @@ from deploy_portal_backend.models.deployment import DeploymentApplyRequest
 
 logger = logging.getLogger(__name__)
 
+# Import log storage function
+try:
+    from deploy_portal_backend.api.routes_deployments import add_deployment_log
+except ImportError:
+    # Fallback if circular import
+    def add_deployment_log(deployment_id: int, level: str, message: str):
+        pass
+
 
 class DeploymentService:
     """Service for deploying Docker containers via SSH."""
     
     @staticmethod
-    def _get_sudo_prefix(ssh: paramiko.SSHClient) -> str:
+    def _get_sudo_prefix(ssh: paramiko.SSHClient, deployment_id: Optional[int] = None) -> str:
         """Check if sudo is available and return appropriate prefix."""
         check_sudo_cmd = "command -v sudo >/dev/null 2>&1 && echo 'sudo' || echo 'no_sudo'"
         exit_status, stdout_text, _ = DeploymentService._execute_command(
-            ssh, check_sudo_cmd, "Check sudo availability"
+            ssh, check_sudo_cmd, "Check sudo availability", deployment_id
         )
         
         if "sudo" in stdout_text.lower():
@@ -44,21 +52,27 @@ class DeploymentService:
                 raise Exception("Cannot install Docker: user is not root and sudo is not available")
     
     @staticmethod
-    def _check_and_install_docker(ssh: paramiko.SSHClient, target: Target):
+    def _check_and_install_docker(ssh: paramiko.SSHClient, target: Target, deployment_id: Optional[int] = None):
         """Check if Docker is installed, install if not."""
-        logger.info("Checking if Docker is installed on remote VM...")
+        log_msg = "Checking if Docker is installed on remote VM..."
+        logger.info(log_msg)
+        if deployment_id:
+            add_deployment_log(deployment_id, "INFO", log_msg)
         
         # Get sudo prefix
         try:
-            sudo_prefix = DeploymentService._get_sudo_prefix(ssh)
+            sudo_prefix = DeploymentService._get_sudo_prefix(ssh, deployment_id)
         except Exception as e:
-            logger.error(f"Cannot proceed with Docker installation: {str(e)}")
+            error_msg = f"Cannot proceed with Docker installation: {str(e)}"
+            logger.error(error_msg)
+            if deployment_id:
+                add_deployment_log(deployment_id, "ERROR", error_msg)
             raise
         
         # Check if docker command exists
         check_cmd = "command -v docker >/dev/null 2>&1 && echo 'installed' || echo 'not_installed'"
         exit_status, stdout_text, stderr_text = DeploymentService._execute_command(
-            ssh, check_cmd, "Check Docker installation"
+            ssh, check_cmd, "Check Docker installation", deployment_id
         )
         
         if "installed" in stdout_text.lower():
@@ -104,9 +118,12 @@ class DeploymentService:
         logger.info(f"Docker installed successfully: {version_output}")
     
     @staticmethod
-    def _install_docker_debian(ssh: paramiko.SSHClient, sudo_prefix: str):
+    def _install_docker_debian(ssh: paramiko.SSHClient, sudo_prefix: str, deployment_id: Optional[int] = None):
         """Install Docker on Debian/Ubuntu systems."""
-        logger.info("Installing Docker on Debian/Ubuntu system...")
+        log_msg = "Installing Docker on Debian/Ubuntu system..."
+        logger.info(log_msg)
+        if deployment_id:
+            add_deployment_log(deployment_id, "INFO", log_msg)
         
         commands = [
             (f"{sudo_prefix}apt-get update", "Update package list"),
@@ -123,7 +140,7 @@ class DeploymentService:
         
         for cmd, description in commands:
             exit_status, stdout_text, stderr_text = DeploymentService._execute_command(
-                ssh, cmd, description
+                ssh, cmd, description, deployment_id
             )
             if exit_status != 0:
                 # Some commands may fail but are non-critical (like adding repo if already exists)
@@ -162,9 +179,12 @@ class DeploymentService:
                     logger.debug(f"Error: {stderr_text}")
     
     @staticmethod
-    def _install_docker_generic(ssh: paramiko.SSHClient, sudo_prefix: str):
+    def _install_docker_generic(ssh: paramiko.SSHClient, sudo_prefix: str, deployment_id: Optional[int] = None):
         """Generic Docker installation using convenience script."""
-        logger.info("Installing Docker using convenience script...")
+        log_msg = "Installing Docker using convenience script..."
+        logger.info(log_msg)
+        if deployment_id:
+            add_deployment_log(deployment_id, "INFO", log_msg)
         
         commands = [
             ("curl -fsSL https://get.docker.com -o get-docker.sh", "Download Docker install script"),
@@ -176,7 +196,7 @@ class DeploymentService:
         
         for cmd, description in commands:
             exit_status, stdout_text, stderr_text = DeploymentService._execute_command(
-                ssh, cmd, description
+                ssh, cmd, description, deployment_id
             )
             if exit_status != 0:
                 # Some commands may fail (like systemctl vs service)
@@ -185,9 +205,12 @@ class DeploymentService:
                     logger.debug(f"Error: {stderr_text}")
     
     @staticmethod
-    def _get_ssh_client(target: Target) -> paramiko.SSHClient:
+    def _get_ssh_client(target: Target, deployment_id: Optional[int] = None) -> paramiko.SSHClient:
         """Create and configure SSH client for target."""
-        logger.info(f"Connecting to {target.name} ({target.address}) as {target.ssh_user}")
+        log_msg = f"Connecting to {target.name} ({target.address}) as {target.ssh_user}"
+        logger.info(log_msg)
+        if deployment_id:
+            add_deployment_log(deployment_id, "INFO", log_msg)
         
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -225,18 +248,27 @@ class DeploymentService:
                 pkey=private_key,
                 timeout=10
             )
-            logger.info(f"Successfully connected to {target.address}")
+            success_msg = f"Successfully connected to {target.address}"
+            logger.info(success_msg)
+            if deployment_id:
+                add_deployment_log(deployment_id, "INFO", success_msg)
         except Exception as e:
-            logger.error(f"Failed to connect to {target.address}: {str(e)}")
+            error_msg = f"Failed to connect to {target.address}: {str(e)}"
+            logger.error(error_msg)
+            if deployment_id:
+                add_deployment_log(deployment_id, "ERROR", error_msg)
             raise
         
         return ssh
     
     @staticmethod
-    def _execute_command(ssh: paramiko.SSHClient, command: str, description: str) -> tuple[int, str, str]:
+    def _execute_command(ssh: paramiko.SSHClient, command: str, description: str, deployment_id: Optional[int] = None) -> tuple[int, str, str]:
         """Execute a command via SSH and return exit status, stdout, and stderr."""
-        logger.info(f"Executing: {description}")
+        log_msg = f"Executing: {description}"
+        logger.info(log_msg)
         logger.debug(f"Command: {command}")
+        if deployment_id:
+            add_deployment_log(deployment_id, "INFO", log_msg)
         
         stdin, stdout, stderr = ssh.exec_command(command)
         exit_status = stdout.channel.recv_exit_status()
@@ -244,31 +276,46 @@ class DeploymentService:
         stderr_text = stderr.read().decode().strip()
         
         if exit_status == 0:
-            logger.info(f"✓ {description} - Success")
+            success_msg = f"✓ {description} - Success"
+            logger.info(success_msg)
+            if deployment_id:
+                add_deployment_log(deployment_id, "INFO", success_msg)
             if stdout_text:
                 logger.debug(f"Output: {stdout_text}")
+                if deployment_id:
+                    add_deployment_log(deployment_id, "DEBUG", f"Output: {stdout_text}")
         else:
-            logger.warning(f"✗ {description} - Failed (exit code: {exit_status})")
+            fail_msg = f"✗ {description} - Failed (exit code: {exit_status})"
+            logger.warning(fail_msg)
+            if deployment_id:
+                add_deployment_log(deployment_id, "WARNING", fail_msg)
             if stderr_text:
                 logger.warning(f"Error output: {stderr_text}")
+                if deployment_id:
+                    add_deployment_log(deployment_id, "ERROR", f"Error output: {stderr_text}")
             if stdout_text:
                 logger.debug(f"Output: {stdout_text}")
+                if deployment_id:
+                    add_deployment_log(deployment_id, "DEBUG", f"Output: {stdout_text}")
         
         return exit_status, stdout_text, stderr_text
     
     @staticmethod
-    def deploy_single_container(target: Target, image: str, container_name: str, ports: Optional[str] = None) -> str:
+    def deploy_single_container(target: Target, image: str, container_name: str, ports: Optional[str] = None, deployment_id: Optional[int] = None) -> str:
         """Deploy a single Docker container on remote VM."""
-        logger.info(f"Starting single container deployment: {container_name} ({image})")
+        log_msg = f"Starting single container deployment: {container_name} ({image})"
+        logger.info(log_msg)
+        if deployment_id:
+            add_deployment_log(deployment_id, "INFO", log_msg)
         
-        ssh = DeploymentService._get_ssh_client(target)
+        ssh = DeploymentService._get_ssh_client(target, deployment_id)
         
         try:
             # Check and install Docker if needed
             DeploymentService._check_and_install_docker(ssh, target)
             
             # Get sudo prefix for docker commands (may need sudo if user not in docker group)
-            sudo_prefix = DeploymentService._get_sudo_prefix(ssh)
+            sudo_prefix = DeploymentService._get_sudo_prefix(ssh, deployment_id)
             
             # Check if user can run docker without sudo
             test_docker_cmd = "docker ps >/dev/null 2>&1 && echo 'no_sudo' || echo 'needs_sudo'"
@@ -324,18 +371,21 @@ class DeploymentService:
             logger.info(f"Closed SSH connection to {target.address}")
     
     @staticmethod
-    def deploy_compose_file(target: Target, compose_file_path: str) -> str:
+    def deploy_compose_file(target: Target, compose_file_path: str, deployment_id: Optional[int] = None) -> str:
         """Deploy Docker Compose stack on remote VM."""
-        logger.info(f"Starting Docker Compose deployment from: {compose_file_path}")
+        log_msg = f"Starting Docker Compose deployment from: {compose_file_path}"
+        logger.info(log_msg)
+        if deployment_id:
+            add_deployment_log(deployment_id, "INFO", log_msg)
         
-        ssh = DeploymentService._get_ssh_client(target)
+        ssh = DeploymentService._get_ssh_client(target, deployment_id)
         
         try:
             # Check and install Docker if needed
             DeploymentService._check_and_install_docker(ssh, target)
             
             # Get sudo prefix for docker commands (may need sudo if user not in docker group)
-            sudo_prefix = DeploymentService._get_sudo_prefix(ssh)
+            sudo_prefix = DeploymentService._get_sudo_prefix(ssh, deployment_id)
             
             # Check if user can run docker without sudo
             test_docker_cmd = "docker ps >/dev/null 2>&1 && echo 'no_sudo' || echo 'needs_sudo'"
@@ -388,15 +438,312 @@ class DeploymentService:
             logger.info(f"Closed SSH connection to {target.address}")
     
     @staticmethod
-    def deploy(request: DeploymentApplyRequest, target: Target) -> str:
+    def deploy(request: DeploymentApplyRequest, target: Target, deployment_id: Optional[int] = None) -> str:
         """Deploy based on request type."""
         if request.compose_file_path:
-            return DeploymentService.deploy_compose_file(target, request.compose_file_path)
+            return DeploymentService.deploy_compose_file(target, request.compose_file_path, deployment_id)
         else:
             return DeploymentService.deploy_single_container(
                 target,
                 request.image,
                 request.container_name,
-                request.ports
+                request.ports,
+                deployment_id
             )
+    
+    @staticmethod
+    def list_containers(target: Target) -> list[dict]:
+        """List all containers on a target."""
+        ssh = DeploymentService._get_ssh_client(target)
+        
+        try:
+            # Get sudo prefix
+            sudo_prefix = DeploymentService._get_sudo_prefix(ssh)
+            
+            # Check if user can run docker without sudo
+            test_docker_cmd = "docker ps >/dev/null 2>&1 && echo 'no_sudo' || echo 'needs_sudo'"
+            exit_status, docker_check, _ = DeploymentService._execute_command(
+                ssh, test_docker_cmd, "Check if docker needs sudo"
+            )
+            docker_sudo = "" if "no_sudo" in docker_check.lower() else sudo_prefix
+            
+            # List all containers (running and stopped)
+            list_cmd = f"{docker_sudo}docker ps -a --format '{{{{.ID}}}}\\t{{{{.Names}}}}\\t{{{{.Image}}}}\\t{{{{.Status}}}}\\t{{{{.Ports}}}}'"
+            exit_status, stdout_text, stderr_text = DeploymentService._execute_command(
+                ssh, list_cmd, "List containers"
+            )
+            
+            if exit_status != 0:
+                raise Exception(f"Failed to list containers: {stderr_text}")
+            
+            containers = []
+            for line in stdout_text.strip().split('\n'):
+                if not line.strip():
+                    continue
+                parts = line.split('\t')
+                if len(parts) >= 4:
+                    containers.append({
+                        "id": parts[0][:12],  # Short container ID
+                        "name": parts[1],
+                        "image": parts[2],
+                        "status": parts[3],
+                        "ports": parts[4] if len(parts) > 4 else ""
+                    })
+            
+            return containers
+            
+        finally:
+            ssh.close()
+    
+    @staticmethod
+    def get_container_logs(target: Target, container_name: str, lines: int = 100) -> str:
+        """Get logs for a specific container."""
+        ssh = DeploymentService._get_ssh_client(target)
+        
+        try:
+            # Get sudo prefix
+            sudo_prefix = DeploymentService._get_sudo_prefix(ssh)
+            
+            # Check if user can run docker without sudo
+            test_docker_cmd = "docker ps >/dev/null 2>&1 && echo 'no_sudo' || echo 'needs_sudo'"
+            exit_status, docker_check, _ = DeploymentService._execute_command(
+                ssh, test_docker_cmd, "Check if docker needs sudo"
+            )
+            docker_sudo = "" if "no_sudo" in docker_check.lower() else sudo_prefix
+            
+            # Get container logs
+            logs_cmd = f"{docker_sudo}docker logs --tail {lines} {container_name} 2>&1"
+            exit_status, stdout_text, stderr_text = DeploymentService._execute_command(
+                ssh, logs_cmd, f"Get logs for container {container_name}"
+            )
+            
+            # Combine stdout and stderr (docker logs outputs to stderr for some logs)
+            combined_logs = stdout_text + "\n" + stderr_text if stderr_text else stdout_text
+            
+            return combined_logs.strip()
+            
+        finally:
+            ssh.close()
+    
+    @staticmethod
+    def get_container_env(target: Target, container_name: str) -> dict:
+        """Get environment variables for a container."""
+        ssh = DeploymentService._get_ssh_client(target)
+        
+        try:
+            # Get sudo prefix
+            sudo_prefix = DeploymentService._get_sudo_prefix(ssh)
+            
+            # Check if user can run docker without sudo
+            test_docker_cmd = "docker ps >/dev/null 2>&1 && echo 'no_sudo' || echo 'needs_sudo'"
+            exit_status, docker_check, _ = DeploymentService._execute_command(
+                ssh, test_docker_cmd, "Check if docker needs sudo"
+            )
+            docker_sudo = "" if "no_sudo" in docker_check.lower() else sudo_prefix
+            
+            # Get container inspect to extract env vars
+            inspect_cmd = f"{docker_sudo}docker inspect {container_name} --format '{{{{json .Config.Env}}}}'"
+            exit_status, stdout_text, stderr_text = DeploymentService._execute_command(
+                ssh, inspect_cmd, f"Get env vars for container {container_name}"
+            )
+            
+            if exit_status != 0:
+                raise Exception(f"Failed to get container env: {stderr_text}")
+            
+            import json
+            env_list = json.loads(stdout_text.strip())
+            
+            # Parse env vars into dict (format: KEY=VALUE)
+            env_dict = {}
+            for env_var in env_list:
+                if '=' in env_var:
+                    key, value = env_var.split('=', 1)
+                    env_dict[key] = value
+                else:
+                    env_dict[env_var] = ""
+            
+            return env_dict
+            
+        finally:
+            ssh.close()
+    
+    @staticmethod
+    def update_container_env(target: Target, container_name: str, env_vars: dict) -> str:
+        """Update environment variables for a container by recreating it."""
+        ssh = DeploymentService._get_ssh_client(target)
+        
+        try:
+            # Get sudo prefix
+            sudo_prefix = DeploymentService._get_sudo_prefix(ssh)
+            
+            # Check if user can run docker without sudo
+            test_docker_cmd = "docker ps >/dev/null 2>&1 && echo 'no_sudo' || echo 'needs_sudo'"
+            exit_status, docker_check, _ = DeploymentService._execute_command(
+                ssh, test_docker_cmd, "Check if docker needs sudo"
+            )
+            docker_sudo = "" if "no_sudo" in docker_check.lower() else sudo_prefix
+            
+            # Get container configuration
+            inspect_cmd = f"{docker_sudo}docker inspect {container_name}"
+            exit_status, inspect_output, stderr_text = DeploymentService._execute_command(
+                ssh, inspect_cmd, f"Inspect container {container_name}"
+            )
+            
+            if exit_status != 0:
+                raise Exception(f"Failed to inspect container: {stderr_text}")
+            
+            import json
+            container_info = json.loads(inspect_output)[0]
+            config = container_info['Config']
+            host_config = container_info['HostConfig']
+            
+            # Get image
+            image = config['Image']
+            
+            # Get command
+            cmd = config.get('Cmd', [])
+            cmd_str = ' '.join(cmd) if cmd else ''
+            
+            # Get port bindings
+            port_bindings = host_config.get('PortBindings', {})
+            port_args = []
+            for container_port, bindings in port_bindings.items():
+                if bindings:
+                    host_port = bindings[0]['HostPort']
+                    port_args.append(f"-p {host_port}:{container_port.split('/')[0]}")
+            
+            # Build env var arguments (properly escape values)
+            env_args = []
+            for key, value in env_vars.items():
+                # Escape special characters in value
+                escaped_value = str(value).replace('"', '\\"').replace('$', '\\$')
+                env_args.append(f'-e {key}="{escaped_value}"')
+            
+            # Stop and remove old container
+            stop_cmd = f"{docker_sudo}docker stop {container_name}"
+            DeploymentService._execute_command(ssh, stop_cmd, f"Stop container {container_name}")
+            
+            remove_cmd = f"{docker_sudo}docker rm {container_name}"
+            DeploymentService._execute_command(ssh, remove_cmd, f"Remove container {container_name}")
+            
+            # Create new container with updated env vars
+            docker_run_cmd = f"{docker_sudo}docker run -d --name {container_name}"
+            if port_args:
+                docker_run_cmd += " " + " ".join(port_args)
+            if env_args:
+                docker_run_cmd += " " + " ".join(env_args)
+            docker_run_cmd += f" {image}"
+            if cmd_str:
+                docker_run_cmd += f" {cmd_str}"
+            
+            exit_status, stdout_text, stderr_text = DeploymentService._execute_command(
+                ssh, docker_run_cmd, f"Recreate container {container_name} with new env vars"
+            )
+            
+            if exit_status != 0:
+                raise Exception(f"Failed to recreate container: {stderr_text}")
+            
+            return f"Container {container_name} restarted with updated environment variables"
+            
+        finally:
+            ssh.close()
+    
+    @staticmethod
+    def get_target_env(target: Target) -> dict:
+        """Get environment variables from VM's /etc/environment file."""
+        ssh = DeploymentService._get_ssh_client(target)
+        
+        try:
+            # Get sudo prefix
+            sudo_prefix = DeploymentService._get_sudo_prefix(ssh)
+            
+            # Read /etc/environment file
+            read_cmd = f"{sudo_prefix}cat /etc/environment 2>/dev/null || echo ''"
+            exit_status, stdout_text, stderr_text = DeploymentService._execute_command(
+                ssh, read_cmd, "Read /etc/environment"
+            )
+            
+            env_dict = {}
+            if stdout_text.strip():
+                for line in stdout_text.strip().split('\n'):
+                    line = line.strip()
+                    if line and not line.startswith('#') and '=' in line:
+                        key, value = line.split('=', 1)
+                        env_dict[key.strip()] = value.strip().strip('"').strip("'")
+            
+            # Also get current shell environment for comparison
+            env_cmd = "env | grep -v '^_' | sort"
+            exit_status, env_output, _ = DeploymentService._execute_command(
+                ssh, env_cmd, "Get current environment"
+            )
+            
+            # Merge shell env vars (prioritize /etc/environment if both exist)
+            if env_output.strip():
+                for line in env_output.strip().split('\n'):
+                    if '=' in line:
+                        key, value = line.split('=', 1)
+                        key = key.strip()
+                        if key not in env_dict:  # Only add if not already in /etc/environment
+                            env_dict[key] = value.strip()
+            
+            return env_dict
+            
+        finally:
+            ssh.close()
+    
+    @staticmethod
+    def update_target_env(target: Target, env_vars: dict) -> str:
+        """Update environment variables in VM's /etc/environment file."""
+        ssh = DeploymentService._get_ssh_client(target)
+        
+        try:
+            # Get sudo prefix
+            sudo_prefix = DeploymentService._get_sudo_prefix(ssh)
+            
+            # Backup original file
+            backup_cmd = f"{sudo_prefix}cp /etc/environment /etc/environment.backup.$(date +%s) 2>/dev/null || true"
+            DeploymentService._execute_command(ssh, backup_cmd, "Backup /etc/environment")
+            
+            # Build new environment file content
+            env_lines = []
+            for key, value in env_vars.items():
+                # Escape special characters properly for shell
+                escaped_key = str(key).replace('"', '\\"').replace('$', '\\$')
+                escaped_value = str(value).replace('"', '\\"').replace('$', '\\$')
+                env_lines.append(f'{escaped_key}="{escaped_value}"')
+            
+            env_content = '\n'.join(env_lines) + '\n'
+            
+            # Write to temporary file first, then move to /etc/environment
+            import time
+            import base64
+            temp_file = f"/tmp/environment.{target.id}.{int(time.time())}"
+            
+            # Base64 encode the content to avoid shell escaping issues
+            encoded_content = base64.b64encode(env_content.encode()).decode()
+            write_cmd = f"echo '{encoded_content}' | base64 -d | {sudo_prefix}tee {temp_file} > /dev/null"
+            exit_status, _, stderr_text = DeploymentService._execute_command(
+                ssh, write_cmd, f"Write to temp file {temp_file}"
+            )
+            
+            if exit_status != 0:
+                raise Exception(f"Failed to write temp file: {stderr_text}")
+            
+            # Move temp file to /etc/environment
+            move_cmd = f"{sudo_prefix}mv {temp_file} /etc/environment"
+            exit_status, _, stderr_text = DeploymentService._execute_command(
+                ssh, move_cmd, "Move temp file to /etc/environment"
+            )
+            
+            if exit_status != 0:
+                raise Exception(f"Failed to update /etc/environment: {stderr_text}")
+            
+            # Set proper permissions
+            chmod_cmd = f"{sudo_prefix}chmod 644 /etc/environment"
+            DeploymentService._execute_command(ssh, chmod_cmd, "Set /etc/environment permissions")
+            
+            return f"VM environment variables updated. Changes will take effect for new sessions. Run 'source /etc/environment' or restart the session to apply immediately."
+            
+        finally:
+            ssh.close()
 

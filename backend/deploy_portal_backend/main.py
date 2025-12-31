@@ -33,5 +33,5 @@ app.include_router(deployments_router, prefix=API_PREFIX)
 
 @app.get("/")
 async def root():
-    return {"message": "Deploy Portal API", "version": "0.1.0"}
+    return {"message": "Manifold API", "version": "0.1.0"}
 

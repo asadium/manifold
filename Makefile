@@ -16,7 +16,7 @@ check-docker-compose:
 	fi
 
 help:
-	@echo "Deploy Portal - Docker Container Deployment on VMs"
+	@echo "Manifold - Docker Container Deployment on VMs"
 	@echo ""
 	@echo "Development:"
 	@echo "  make install           - Install all dependencies (backend + frontend)"

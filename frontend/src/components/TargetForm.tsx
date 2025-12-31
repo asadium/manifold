@@ -4,9 +4,10 @@ import "./TargetForm.css";
 
 interface TargetFormProps {
   onSuccess?: () => void;
+  onClose?: () => void;
 }
 
-export default function TargetForm({ onSuccess }: TargetFormProps) {
+export default function TargetForm({ onSuccess, onClose }: TargetFormProps) {
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
   const [sshKeyPath, setSshKeyPath] = useState("");
@@ -34,6 +35,9 @@ export default function TargetForm({ onSuccess }: TargetFormProps) {
       if (onSuccess) {
         onSuccess();
       }
+      if (onClose) {
+        onClose();
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create target");
     } finally {
@@ -43,7 +47,6 @@ export default function TargetForm({ onSuccess }: TargetFormProps) {
 
   return (
     <div className="target-form">
-      <h2>Create VM Target</h2>
       <form onSubmit={handleSubmit}>
         <div className="form-group">
           <label htmlFor="name">Name</label>

@@ -1,0 +1,397 @@
+/* Dark mode styles */
+:root.dark-mode {
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #2d2d2d;
+  --bg-tertiary: #3d3d3d;
+  --text-primary: #f0f0f0;
+  --text-secondary: #d0d0d0;
+  --text-tertiary: #a0a0a0;
+  --border-color: #404040;
+  --shadow: rgba(0, 0, 0, 0.3);
+}
+
+:root:not(.dark-mode) {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --bg-tertiary: #e9ecef;
+  --text-primary: #333;
+  --text-secondary: #666;
+  --text-tertiary: #888;
+  --border-color: #e0e0e0;
+  --shadow: rgba(0, 0, 0, 0.1);
+}
+
+/* Apply dark mode to body */
+.dark-mode body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+/* App header */
+.dark-mode .app-header {
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.dark-mode .app-header h1 {
+  color: var(--text-primary);
+}
+
+.dark-mode .dark-mode-label {
+  color: var(--text-secondary);
+}
+
+.dark-mode .action-button {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+.dark-mode .action-button:hover {
+  background: var(--bg-secondary);
+}
+
+.dark-mode .action-button.primary {
+  background: #4a9eff;
+  color: white;
+}
+
+.dark-mode .action-button.primary:hover {
+  background: #6bb0ff;
+}
+
+/* Target list and deployment panel */
+.dark-mode .target-list,
+.dark-mode .deployment-panel {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+}
+
+.dark-mode .target-list h2,
+.dark-mode .deployment-panel h2 {
+  color: var(--text-primary);
+}
+
+.dark-mode .targets-empty,
+.dark-mode .deployments-empty {
+  color: var(--text-secondary);
+}
+
+/* Cards */
+.dark-mode .target-card,
+.dark-mode .deployment-card {
+  background: var(--bg-tertiary);
+  border-color: var(--border-color);
+}
+
+.dark-mode .target-card-header:hover,
+.dark-mode .deployment-card-header:hover {
+  background-color: var(--bg-secondary);
+}
+
+.dark-mode .target-card-name,
+.dark-mode .deployment-target {
+  color: var(--text-primary);
+}
+
+.dark-mode .target-card-address,
+.dark-mode .target-card-user,
+.dark-mode .target-id,
+.dark-mode .deployment-id,
+.dark-mode .deployment-container,
+.dark-mode .deployment-compose {
+  color: var(--text-secondary);
+}
+
+.dark-mode .expand-icon {
+  color: var(--text-secondary);
+}
+
+.dark-mode .target-containers-count {
+  color: var(--text-secondary);
+}
+
+.dark-mode .target-card-content,
+.dark-mode .deployment-card-content {
+  background: var(--bg-secondary);
+  border-top-color: var(--border-color);
+}
+
+/* Container cards */
+.dark-mode .container-card {
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+.dark-mode .container-name {
+  color: var(--text-primary);
+}
+
+.dark-mode .container-image {
+  background-color: var(--bg-tertiary);
+  color: var(--text-secondary);
+}
+
+.dark-mode .container-ports {
+  color: var(--text-secondary);
+}
+
+.dark-mode .containers-empty,
+.dark-mode .containers-loading {
+  color: var(--text-primary);
+}
+
+/* Status badges */
+.dark-mode .status-running {
+  background-color: #1e4620;
+  color: #90ee90;
+}
+
+.dark-mode .status-stopped {
+  background-color: #4a1e1e;
+  color: #ff9999;
+}
+
+.dark-mode .deployment-status.status-success {
+  background-color: #1e4620;
+  color: #90ee90;
+}
+
+.dark-mode .deployment-status.status-failed {
+  background-color: #4a1e1e;
+  color: #ff9999;
+}
+
+.dark-mode .deployment-status.status-running {
+  background-color: #1e3a3f;
+  color: #7dd3f0;
+}
+
+.dark-mode .deployment-status.status-queued {
+  background-color: #4a3d1e;
+  color: #ffd700;
+}
+
+/* Buttons */
+.dark-mode .view-logs-button {
+  background: #4a9eff;
+  color: white;
+}
+
+.dark-mode .view-logs-button:hover:not(:disabled) {
+  background: #6bb0ff;
+}
+
+.dark-mode .view-env-button {
+  background: #4caf50;
+  color: white;
+}
+
+.dark-mode .view-env-button:hover:not(:disabled) {
+  background: #66bb6a;
+}
+
+.dark-mode .view-logs-button:disabled,
+.dark-mode .view-env-button:disabled {
+  background: #555;
+  color: #888;
+}
+
+/* Forms */
+.dark-mode .target-form,
+.dark-mode .deployment-form {
+  background: var(--bg-secondary);
+}
+
+.dark-mode .form-group label {
+  color: var(--text-primary);
+}
+
+.dark-mode .form-group input,
+.dark-mode .form-group select {
+  background: var(--bg-tertiary);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.dark-mode .form-group input:focus,
+.dark-mode .form-group select:focus {
+  border-color: #4a9eff;
+}
+
+.dark-mode .form-error {
+  background: #4a1e1e;
+  border-color: #721c24;
+  color: #ff9999;
+}
+
+.dark-mode .submit-button,
+.dark-mode .apply-button {
+  background: #4a9eff;
+  color: white;
+}
+
+.dark-mode .submit-button:hover:not(:disabled),
+.dark-mode .apply-button:hover:not(:disabled) {
+  background: #6bb0ff;
+}
+
+.dark-mode .preview-button {
+  background: #6c757d;
+}
+
+.dark-mode .preview-button:hover:not(:disabled) {
+  background: #5a6268;
+}
+
+/* Environment variables */
+.dark-mode .env-display,
+.dark-mode .env-editor {
+  background: var(--bg-tertiary);
+}
+
+.dark-mode .env-var-item {
+  background: var(--bg-secondary);
+}
+
+.dark-mode .env-var-key {
+  color: #7dd3f0;
+}
+
+.dark-mode .env-var-value {
+  color: var(--text-primary);
+}
+
+/* VM Environment Variables section */
+.dark-mode .target-env-section {
+  border-bottom-color: var(--border-color);
+}
+
+.dark-mode .target-env-header h4 {
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .container-env-header h4 {
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .env-key-input,
+.dark-mode .env-value-input {
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.dark-mode .env-key-input:focus,
+.dark-mode .env-value-input:focus {
+  border-color: #4a9eff;
+}
+
+.dark-mode .edit-env-button {
+  background: #4a9eff;
+  color: white;
+}
+
+.dark-mode .edit-env-button:hover {
+  background: #6bb0ff;
+}
+
+.dark-mode .add-env-var-button {
+  background: #6c757d;
+  color: white;
+}
+
+.dark-mode .add-env-var-button:hover {
+  background: #5a6268;
+}
+
+.dark-mode .save-env-button {
+  background: #4caf50;
+  color: white;
+}
+
+.dark-mode .save-env-button:hover:not(:disabled) {
+  background: #66bb6a;
+}
+
+.dark-mode .cancel-env-button {
+  background: #6c757d;
+  color: white;
+}
+
+.dark-mode .cancel-env-button:hover:not(:disabled) {
+  background: #5a6268;
+}
+
+.dark-mode .remove-env-var-button {
+  background: #dc3545;
+  color: white;
+}
+
+.dark-mode .remove-env-var-button:hover {
+  background: #c82333;
+}
+
+.dark-mode .env-loading,
+.dark-mode .env-empty {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.dark-mode .target-env-content .env-loading,
+.dark-mode .target-env-content .env-empty {
+  color: var(--text-primary);
+}
+
+/* Deployment details */
+.dark-mode .deployment-details {
+  border-bottom-color: var(--border-color);
+}
+
+.dark-mode .deployment-detail-item {
+  color: var(--text-secondary);
+}
+
+.dark-mode .deployment-detail-item strong {
+  color: var(--text-primary);
+}
+
+/* Modal */
+.dark-mode .modal-overlay {
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+.dark-mode .modal-content {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+}
+
+.dark-mode .modal-header {
+  border-bottom-color: var(--border-color);
+}
+
+.dark-mode .modal-header h2 {
+  color: var(--text-primary);
+}
+
+.dark-mode .modal-close {
+  color: var(--text-secondary);
+}
+
+.dark-mode .modal-close:hover {
+  background-color: var(--bg-tertiary);
+}
+
+.dark-mode .modal-body {
+  background: var(--bg-secondary);
+}
+
+/* Scrollbars */
+.dark-mode .container-info::-webkit-scrollbar-thumb {
+  background: #555;
+}
+
+.dark-mode .container-info::-webkit-scrollbar-thumb:hover {
+  background: #777;
+}
+

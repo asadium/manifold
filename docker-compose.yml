@@ -7,7 +7,7 @@ services:
       - "8000:8000"
     environment:
       - API_PREFIX=/api
-      - PROJECT_NAME=Deploy Portal
+      - PROJECT_NAME=Manifold
     volumes:
       - ./backend/deploy_portal_backend:/app/deploy_portal_backend
       - ~/.ssh:/root/.ssh:ro  # Mount SSH keys from host (read-only)
